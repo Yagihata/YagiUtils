@@ -2,6 +2,7 @@
 using UnityEditor;
 using System;
 using System.Linq;
+using static UnityEditor.EditorGUILayout;
 
 namespace YagihataItems.YagiUtils
 {
@@ -107,7 +108,19 @@ namespace YagihataItems.YagiUtils
 
             try
             {
-                return GUILayout.Button(labelText, stl);
+                Rect rect;
+                var result = false;
+
+                using (var scope = new EditorGUILayout.VerticalScope())
+                {
+                    result = GUILayout.Button(labelText, stl);
+                    rect = scope.rect;
+                }
+                rect.y += rect.height - 1;
+                rect.height = 1;
+                GUIStyle stl2 = GUI.skin.box;
+                EditorGUI.DrawRect(rect, labelColor);
+                return result;
             }
             finally
             {
@@ -138,6 +151,65 @@ namespace YagihataItems.YagiUtils
                 }
             }
             //if returning bool, return false here.
+        }
+        public static void LinkLabel(string labelText, Color labelColor, Vector2 contentOffset, int fontSize, Action action)
+        {
+            if (LinkLabel(labelText, labelColor, contentOffset, fontSize))
+            {
+                try
+                {
+                    action();
+                    //if returning bool, return true here.
+                }
+                catch
+                {
+                    //In most cases, the catch clause would not happen but in the interest of being thorough I will log an
+                    //error and have Unity "beep" if an exception gets thrown for any reason.
+                    Debug.LogError("Could not open URL. Please check your network connection and ensure the web address is correct.");
+                    EditorApplication.Beep();
+                }
+            }
+            //if returning bool, return false here.
+        }
+        public static void HeaderWithVersionInfo(Texture2D headerTexture, Rect scopeRect, Rect editorRect, string newVersion, string currentVersion, string versionPrefix)
+        {
+            var showingVerticalScroll = false;
+            if (scopeRect.height != 0)
+                showingVerticalScroll = scopeRect.height > editorRect.size.y;
+            var height = editorRect.size.x / headerTexture.width * headerTexture.height;
+            if (height > headerTexture.height)
+                height = headerTexture.height;
+            GUILayout.Box(headerTexture, GUILayout.Width(editorRect.size.x - (showingVerticalScroll ? 22 : 8)), GUILayout.Height(height));
+
+
+            var rect = new Rect();
+            rect.x = rect.y = 10;
+            rect.width = editorRect.size.x - (showingVerticalScroll ? 22 : 8) - rect.x;
+            rect.height = height - rect.y;
+            using (new GUILayout.AreaScope(rect))
+            {
+                using (new GUILayout.VerticalScope())
+                {
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        GUILayout.Label($"VERSION-{currentVersion} ");
+                    }
+                    GUILayout.FlexibleSpace();
+                    using (new GUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (newVersion.StartsWith(versionPrefix) && currentVersion != newVersion)
+                        {
+                            var beforeColor = GUI.backgroundColor;
+                            GUI.backgroundColor = new Color(beforeColor.r, beforeColor.g, beforeColor.b, 0.7f);
+                            using (new GUILayout.HorizontalScope(GUI.skin.box))
+                                EditorGUILayoutExtra.LinkLabel("新しいバージョンがあります", Color.blue, new Vector2(), 0, "");
+                            GUI.backgroundColor = beforeColor;
+                        }
+                    }
+                }
+            }
         }
     }
 }

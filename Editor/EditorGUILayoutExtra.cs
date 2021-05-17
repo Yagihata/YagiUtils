@@ -116,7 +116,7 @@ namespace YagihataItems.YagiUtils
                     result = GUILayout.Button(labelText, stl);
                     rect = scope.rect;
                 }
-                rect.y += rect.height - 1;
+                rect.y += rect.height - 3;
                 rect.height = 1;
                 GUIStyle stl2 = GUI.skin.box;
                 EditorGUI.DrawRect(rect, labelColor);

@@ -41,6 +41,7 @@ namespace YagihataItems.YagiUtils
             transition.hasFixedDuration = true;
             transition.duration = 0;
             transition.offset = 0;
+            transition.canTransitionToSelf = false;
             return transition;
         }
         public static AnimatorStateTransition MakeTransition(this AnimatorState srcState, AnimatorState destState, string name = "")

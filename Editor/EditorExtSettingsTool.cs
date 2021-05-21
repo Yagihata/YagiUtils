@@ -34,15 +34,6 @@ namespace YagihataItems.YagiUtils
                 }
             }
             return null;
-            /*
-            if (settings != null)
-            {
-                variables = settings.GetVariables();
-            }
-            else
-            {
-                variables.FolderID = System.Guid.NewGuid().ToString();
-            }*/
         }
         public static void SaveSettings<T>(VRCAvatarDescriptor avatarRoot, string settingsName, IEditorExtVariables variables) where T : IEditorExtSettings
         {

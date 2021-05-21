@@ -3,6 +3,8 @@ using UnityEditor;
 using System;
 using System.Linq;
 using static UnityEditor.EditorGUILayout;
+using YagihataItems.RadialInventorySystemV3;
+using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace YagihataItems.YagiUtils
 {
@@ -41,23 +43,21 @@ namespace YagihataItems.YagiUtils
             EditorGUILayoutExtra.Separator();
             EditorGUILayoutExtra.Space();
         }
-        public static int IndexedStringList(string label, IndexedList indexedList)
+        public static int IndexedStringList(string label, IndexedList indexedList, string unselectedStr = "(未選択)")
         {
             EditorGUI.BeginChangeCheck();
             var property = indexedList.list;
             Func<string, int, string> selector = (string name, int number) => $"{number}: \r{name}";
             var list = indexedList.list.Select(selector).ToList();
             var divider = string.Empty;
-            var unselected = "（未選択）";
             list.Add(divider);
-            list.Add(unselected);
+            list.Add(unselectedStr);
             var selectedIndex = indexedList.list.Length == 0 ? -1 : indexedList.index < 0 ? indexedList.list.Length + 1 : indexedList.index;
             var displayOptions = list.ToArray();
-            var index = indexedList.list.Length > 0 ? EditorGUILayout.Popup(new GUIContent(label), selectedIndex, displayOptions) : selectedIndex;
+            var listIndex = EditorGUILayout.Popup(new GUIContent(label), indexedList.list.Length == 0 ? 1 : selectedIndex, displayOptions);
+            var index = indexedList.list.Length > 0 ? listIndex : selectedIndex;
             if (EditorGUI.EndChangeCheck())
-            {
                 indexedList.index = index;
-            }
             indexedList.index = index > indexedList.list.Length ? -1 : index;
             return indexedList.index;
         }
@@ -171,20 +171,12 @@ namespace YagihataItems.YagiUtils
             }
             //if returning bool, return false here.
         }
-        public static void HeaderWithVersionInfo(Texture2D headerTexture, Rect scopeRect, Rect editorRect, string newVersion, string currentVersion, string versionPrefix)
+        public static void HeaderWithVersionInfo(Texture2D headerTexture, float width, float height, string newVersion, string currentVersion, string versionPrefix, string newVersionText, string linkUrl)
         {
-            var showingVerticalScroll = false;
-            if (scopeRect.height != 0)
-                showingVerticalScroll = scopeRect.height > editorRect.size.y;
-            var height = editorRect.size.x / headerTexture.width * headerTexture.height;
-            if (height > headerTexture.height)
-                height = headerTexture.height;
-            GUILayout.Box(headerTexture, GUILayout.Width(editorRect.size.x - (showingVerticalScroll ? 22 : 8)), GUILayout.Height(height));
-
-
+            GUILayout.Box(headerTexture, GUILayout.Width(width), GUILayout.Height(height));
             var rect = new Rect();
             rect.x = rect.y = 10;
-            rect.width = editorRect.size.x - (showingVerticalScroll ? 22 : 8) - rect.x;
+            rect.width = width - rect.x;
             rect.height = height - rect.y;
             using (new GUILayout.AreaScope(rect))
             {
@@ -204,12 +196,60 @@ namespace YagihataItems.YagiUtils
                             var beforeColor = GUI.backgroundColor;
                             GUI.backgroundColor = new Color(beforeColor.r, beforeColor.g, beforeColor.b, 0.7f);
                             using (new GUILayout.HorizontalScope(GUI.skin.box))
-                                EditorGUILayoutExtra.LinkLabel("新しいバージョンがあります", Color.blue, new Vector2(), 0, "");
+                                EditorGUILayoutExtra.LinkLabel(newVersionText, Color.blue, new Vector2(), 0, linkUrl);
                             GUI.backgroundColor = beforeColor;
                         }
                     }
                 }
             }
+        }
+        public static void CostViewer(int memoryNow, int memoryAdded, int memoryUseFromScript, string nowMemStr, string remainMemStr)
+        {
+            Rect rect;
+            using (var scope = new EditorGUILayout.VerticalScope(GUI.skin.box))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField(nowMemStr, RISV3.CountBarStyleL, GUILayout.Height(15));
+                    GUILayout.FlexibleSpace();
+                    EditorGUILayout.LabelField(remainMemStr, RISV3.CountBarStyleR, GUILayout.Height(15));
+                }
+                GUILayout.Space(30);
+                rect = scope.rect;
+            }
+            var baseRectHeight = 14;
+            rect.x += 1;
+            rect.width -= 2;
+            rect.y += rect.height - 18;
+            rect.height = baseRectHeight;
+            var baseRectWidth = rect.width;
+            var baseX = rect.x;
+            var baseY = rect.y;
+            EditorGUI.DrawRect(rect, Color.gray);
+
+            var maxParamVRC = VRCExpressionParameters.MAX_PARAMETER_COST;
+            var memDif = memoryAdded - memoryNow;
+            var memMax = memoryAdded > maxParamVRC ? memoryAdded : maxParamVRC;
+            var pixPerMem = rect.width / memMax;
+            rect.width = pixPerMem * memoryNow;
+            EditorGUI.DrawRect(rect, memoryNow <= maxParamVRC ? new Color(0.37f, 0.66f, 0.09f) : new Color(0.95f, 0.44f, 0.81f));
+            rect.x = rect.x + rect.width;
+            rect.width = pixPerMem * memDif;
+            EditorGUI.DrawRect(rect, memoryAdded <= maxParamVRC ? new Color(0.10f, 0.63f, 0.88f) : new Color(0.89f, 0.07f, 0.00f));
+            if (memoryAdded > maxParamVRC)
+            {
+                rect.x = baseX + (maxParamVRC * pixPerMem) - 2;
+                rect.width = 4;
+                rect.y -= 2;
+                rect.height += 4;
+                EditorGUI.DrawRect(rect, Color.black);
+            }
+            rect.x = baseX + 10;
+            rect.y = baseY - baseRectHeight;
+            rect.width = baseRectWidth - 20;
+            rect.height = baseRectHeight;
+            EditorGUI.LabelField(rect, $"{memoryNow}+{memDif}", RISV3.CountBarStyleL);
+            EditorGUI.LabelField(rect, $"{128 - memoryAdded}", RISV3.CountBarStyleR);
         }
     }
 }

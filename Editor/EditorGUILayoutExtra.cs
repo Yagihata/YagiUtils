@@ -3,7 +3,6 @@ using UnityEditor;
 using System;
 using System.Linq;
 using static UnityEditor.EditorGUILayout;
-using YagihataItems.RadialInventorySystemV3;
 using VRC.SDK3.Avatars.ScriptableObjects;
 
 namespace YagihataItems.YagiUtils
@@ -203,16 +202,16 @@ namespace YagihataItems.YagiUtils
                 }
             }
         }
-        public static void CostViewer(int memoryNow, int memoryAdded, int memoryUseFromScript, string nowMemStr, string remainMemStr)
+        public static void CostViewer(int memoryNow, int memoryAdded, int memoryUseFromScript, string nowMemStr, string remainMemStr, GUIStyle CountBarStyleL, GUIStyle CountBarStyleR)
         {
             Rect rect;
             using (var scope = new EditorGUILayout.VerticalScope(GUI.skin.box))
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(nowMemStr, RISV3.CountBarStyleL, GUILayout.Height(15));
+                    EditorGUILayout.LabelField(nowMemStr, CountBarStyleL, GUILayout.Height(15));
                     GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField(remainMemStr, RISV3.CountBarStyleR, GUILayout.Height(15));
+                    EditorGUILayout.LabelField(remainMemStr, CountBarStyleR, GUILayout.Height(15));
                 }
                 GUILayout.Space(30);
                 rect = scope.rect;
@@ -248,8 +247,8 @@ namespace YagihataItems.YagiUtils
             rect.y = baseY - baseRectHeight;
             rect.width = baseRectWidth - 20;
             rect.height = baseRectHeight;
-            EditorGUI.LabelField(rect, $"{memoryNow}+{memDif}", RISV3.CountBarStyleL);
-            EditorGUI.LabelField(rect, $"{128 - memoryAdded}", RISV3.CountBarStyleR);
+            EditorGUI.LabelField(rect, $"{memoryNow}+{memDif}", CountBarStyleL);
+            EditorGUI.LabelField(rect, $"{128 - memoryAdded}", CountBarStyleR);
         }
     }
 }

@@ -9,14 +9,14 @@ namespace YagihataItems.YagiUtils
 {
     public static class TabStyle
     {
-        private static GUIContent[] tabToggles = null;
+        private static Dictionary<Type, GUIContent[]> tabToggles = new Dictionary<Type, GUIContent[]>();
         public static GUIContent[] GetTabToggles<T>() where T : struct
         {
-            if (tabToggles == null)
+            if (!tabToggles.ContainsKey(typeof(T)))
             {
-                tabToggles = Enum.GetNames(typeof(T)).Select(x => new GUIContent(x)).ToArray();
+                tabToggles.Add(typeof(T), Enum.GetNames(typeof(T)).Select(x => new GUIContent(x)).ToArray());
             }
-            return tabToggles;
+            return tabToggles[typeof(T)];
         }
         public static readonly GUIStyle TabButtonStyle = "PreButton";
         public static readonly GUI.ToolbarButtonSize TabButtonSize = GUI.ToolbarButtonSize.Fixed;

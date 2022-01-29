@@ -73,6 +73,21 @@ namespace YagihataItems.YagiUtils
             transition.conditions = condition;
             return condition;
         }
+        public static AnimatorCondition[] AddCondition(this AnimatorStateTransition transition, AnimatorConditionMode mode, string param, float threshold, bool localOnly, bool localMode)
+        {
+            AnimatorCondition[] condition = transition.conditions;
+            Array.Resize(ref condition, transition.conditions.Length + (localOnly ? 2 : 1));
+
+            if (!localOnly)
+                condition[condition.Length - 1] = new AnimatorCondition() { mode = mode, parameter = param, threshold = threshold };
+            else
+            {
+                condition[condition.Length - 2] = new AnimatorCondition() { mode = mode, parameter = param, threshold = threshold };
+                condition[condition.Length - 1] = new AnimatorCondition() { mode = localMode ? AnimatorConditionMode.If : AnimatorConditionMode.IfNot, parameter = "IsLocal", threshold = 0 };
+            }
+            transition.conditions = condition;
+            return condition;
+        }
         public static void Clear(this AnimatorStateMachine stateMachine)
         {
             var states = stateMachine.states.Clone() as ChildAnimatorState[];
